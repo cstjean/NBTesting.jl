@@ -3,7 +3,10 @@
 # __precompile__()
 
 module NBTesting
+
 using JSON
+
+export nbtest, is_testing, @testing_noop
 
 is_skip(line) = startswith(line, "#NBSKIP") || startswith(line, "# NBSKIP")
 
@@ -24,7 +27,9 @@ function nbtranslate(path::AbstractString;
 
     shell_or_help = r"^\s*[;?]" # pattern for shell command or help
     
+    module_name = splitext(basename(outfile_name))[1]
     open(outfile_name, "w") do outfile
+        write(outfile, string("module ", module_name, "\n\n"))
         for (counter, cell) in enumerate(nb["cells"])
             if cell["cell_type"] == "code" && !isempty(cell["source"])
                 s = join(cell["source"])
@@ -57,10 +62,48 @@ function nbtranslate(path::AbstractString;
                 end
             end
         end
+        write(outfile, "end  # module \n")
     end
     return outfile_name
 end
 
+const testing_flag = fill(false)
+function testing(f::Function, val=true)
+    old_val = testing_flag[]
+    testing_flag[] = val
+    try
+        f()
+    finally
+        testing_flag[] = old_val
+    end
+end
 
+""" `is_testing()` is true when called within `nbtest()`, and false otherwise. """
+is_testing() = testing_flag[]
+
+function nbtest(path::AbstractString; kwargs...)
+    fname = nbtranslate(path; kwargs...)
+    testing() do 
+        include(fname)
+    end
+end
+
+noop(args...; kwargs...) = nothing
+
+"""    @testing_noop fun1 fun2 ...
+
+This macro doesn't do anything under normal execution, when this macro is run by `nbtest`,
+it turns the given function names into no-ops. It's primarily meant for output functions
+like `plot`:
+
+    @testing_noop plot     # put this near the top of your notebook
+"""
+macro testing_noop(funs::Symbol...)
+    esc(quote
+        if $NBTesting.is_testing()
+            $([:(@eval $f = $NBTesting.noop) for f in funs]...)
+        end
+    end)
+end
 
 end # module

@@ -24,7 +24,5 @@ TODO
 
 - export `is_testing()` which returns true iff we're running a test (use a dlet over the
 whole module - we want `include` to work)
-- verbose=1...5 corresponding to ##### Titles
 - @testset. Beware that this may create new scopes
-- Print the testing module name
 - Create a dummy module for Plots, that exports the same variables, but every function is a no-op
