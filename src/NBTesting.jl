@@ -11,9 +11,8 @@ export nbtest, is_testing, @testing_noop
 is_skip(line) = startswith(line, "#NBSKIP") || startswith(line, "# NBSKIP")
 
 function nbtranslate(path::AbstractString;
-                     outfile_name=string(dirname(path), "/NBTest_",
-                                         splitext(basename(path))[1],
-                                         ".jl"),
+                     outfile_name=joinpath(dirname(path),
+                                           "NBTest_" * splitext(basename(path))[1]*".jl"),
                      verbose=5)
     _, ext = splitext(path)
     @assert ext == ".ipynb" "nbtranslate only accepts notebook files (.ipynb)"
