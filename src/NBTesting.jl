@@ -8,7 +8,8 @@ using JSON
 is_skip(line) = startswith(line, "#NBSKIP") || startswith(line, "# NBSKIP")
 
 function nbtranslate(path::AbstractString;
-                     outfile_name = "NBTest_" * splitext(path)[1] * ".jl")
+                     outfile_name = "NBTest_" * splitext(path)[1] * ".jl",
+                     verbose=5)
     _, ext = splitext(path)
     @assert ext == ".ipynb" "nbtranslate only accepts notebook files (.ipynb)"
 
@@ -41,6 +42,19 @@ function nbtranslate(path::AbstractString;
                     write(outfile, "\n")
                 end
                 write(outfile, "\n")
+            elseif cell["cell_type"] == "markdown" && !isempty(cell["source"])
+                first_line = split(join(cell["source"]), "\n")[1]
+                # "#"[1] because of a silly ESS (Emacs) code-formatting bug.
+                n_pound = findfirst(x->x!="#"[1], first_line) - 1
+                if n_pound <= verbose
+                    write(outfile, "println(\"$first_line\"); ")
+                    # Since the point of verbosity is partly to report on progress,
+                    # we flush STDOUT.
+                    write(outfile, "flush(STDOUT)\n")
+                else
+                    write(outfile, first_line)
+                    write(outfile, "\n")
+                end
             end
         end
     end
