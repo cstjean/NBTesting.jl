@@ -1,6 +1,6 @@
 # Author: Cedric St-Jean
 # with some code taken from NBInclude.jl, by Steven G. Johnson
-# __precompile__()
+__precompile__()
 
 module NBTesting
 
