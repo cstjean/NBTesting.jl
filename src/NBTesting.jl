@@ -31,9 +31,6 @@ function nbtranslate(path::AbstractString;
     module_name = splitext(basename(outfile_name))[1]
     open(outfile_name, "w") do outfile
         write(outfile, string("module ", module_name, "\n\n"))
-        if verbose > 0
-            write(outfile, "info(\"Testing $path\"); flush(STDERR)\n")
-        end
         for (counter, cell) in enumerate(nb["cells"])
             if cell["cell_type"] == "code" && !isempty(cell["source"])
                 s = join(cell["source"])
@@ -83,15 +80,16 @@ function testing(f::Function, val=true)
         testing_flag[] = old_val
     end
 end
+testing(fname::AbstractString) = testing(()->include(fname))
 
 """ `is_testing()` is true when called within `nbtest()`, and false otherwise. """
 is_testing() = testing_flag[]
 
-function nbtest(path::AbstractString; kwargs...)
-    fname = nbtranslate(path; kwargs...)
-    testing() do 
-        include(fname)
-    end
+function nbtest(path::AbstractString; verbose=5, kwargs...)
+    fname = nbtranslate(path; verbose=verbose, kwargs...)
+    if verbose > 0
+        info("Testing $path"); flush(STDERR) end
+    return testing(fname)
 end
 
 noop(args...; kwargs...) = nothing
