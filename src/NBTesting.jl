@@ -31,8 +31,10 @@ function nbtranslate(path::AbstractString;
     module_name = splitext(basename(outfile_name))[1]
     open(outfile_name, "w") do outfile
         write(outfile, string("module ", module_name, "\n\n"))
-        for (counter, cell) in enumerate(nb["cells"])
+        counter = 0
+        for cell in nb["cells"]
             if cell["cell_type"] == "code" && !isempty(cell["source"])
+                counter += 1
                 s = join(cell["source"])
                 isempty(strip(s)) && continue # Jupyter doesn't number empty cells
                 ismatch(shell_or_help, s) && continue
