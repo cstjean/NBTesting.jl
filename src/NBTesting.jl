@@ -68,7 +68,7 @@ function nbtranslate(path::AbstractString;
                 n_pound = findfirst(x->x!="#"[1], first_line) - 1
                 if 1 <= n_pound
                     if n_pound <= verbose
-                        write(outfile, "# ----------------------------------- ")
+                        write(outfile, "# ----------------------------------- \n")
                         write(outfile, "println(\"$first_line\"); ")
                         # Since the point of verbosity is partly to report on progress,
                         # we flush STDOUT.
