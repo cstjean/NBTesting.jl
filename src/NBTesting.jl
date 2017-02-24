@@ -6,10 +6,20 @@ module NBTesting
 
 using JSON
 
-export nbtest, is_testing, @testing_noop
+export nbtest, nbtranslate, is_testing, @testing_noop
 
 is_skip(line) = startswith(line, "#NBSKIP") || startswith(line, "# NBSKIP")
 
+
+"""     nbtranslate(path; outfile_name=..., verbose=5)
+
+Translates the given .ipynb file into a .jl file, for testing.
+
+ - All code following #NBSKIP within a cell will be ignored
+ - `outfile_name` defaults to the name of the .ipynb file, with a .jl extension.
+ - All headers that start with N pound signs (#) will be turned into print statements,
+whenever `N <= verbose` (so the higher `verbose`, the more titles are printed)
+"""
 function nbtranslate(path::AbstractString;
                      outfile_name=joinpath(dirname(path),
                                            "NBTest_" * splitext(basename(path))[1]*".jl"),
@@ -87,6 +97,16 @@ testing(fname::AbstractString) = testing(()->include(fname))
 """ `is_testing()` is true when called within `nbtest()`, and false otherwise. """
 is_testing() = testing_flag[]
 
+
+"""     nbtest(path; outfile_name=..., verbose=5)
+
+Translates the given .ipynb file into a .jl file for testing, then executes the file.
+
+ - All code following #NBSKIP within a cell will be ignored
+ - `outfile_name` defaults to the name of the .ipynb file, with a .jl extension.
+ - All headers that start with N pound signs (#) will be turned into print statements,
+whenever `N <= verbose` (so the higher `verbose`, the more titles are printed)
+"""
 function nbtest(path::AbstractString; verbose=5, kwargs...)
     fname = nbtranslate(path; verbose=verbose, kwargs...)
     if verbose > 0
@@ -94,15 +114,20 @@ function nbtest(path::AbstractString; verbose=5, kwargs...)
     return testing(fname)
 end
 
+
 noop(args...; kwargs...) = nothing
 
 """    @testing_noop fun1 fun2 ...
 
 This macro doesn't do anything under normal execution, when this macro is run by `nbtest`,
-it turns the given function names into no-ops. It's primarily meant for output functions
-like `plot`:
+it turns the given function names into no-ops. It's primarily meant for disabling output
+functions like `plot` during testing. For example:
 
-    @testing_noop plot     # put this near the top of your notebook
+    @testing_noop plot
+    #NBSKIP
+    using Plots
+
+This will avoid loading Plots at all during testing.
 """
 macro testing_noop(funs::Symbol...)
     esc(quote
