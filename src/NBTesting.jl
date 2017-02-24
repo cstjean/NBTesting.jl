@@ -71,7 +71,7 @@ function nbtranslate(path::AbstractString;
                         write(outfile, "println(\"$first_line\"); ")
                         # Since the point of verbosity is partly to report on progress,
                         # we flush STDOUT.
-                        write(outfile, "flush(STDOUT)\n")
+                        write(outfile, "flush(STDOUT)\n\n")
                     else
                         write(outfile, first_line)
                         write(outfile, "\n")
