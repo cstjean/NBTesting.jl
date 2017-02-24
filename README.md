@@ -6,23 +6,19 @@
 
 [![codecov.io](http://codecov.io/github/cstjean/NBTesting.jl/coverage.svg?branch=master)](http://codecov.io/github/cstjean/NBTesting.jl?branch=master)
 
-`nbtest` produces a git-friendly `.jl` file with the tests before running them. It can
-be produced without running the tests by calling `NBTesting.nbtranslate(filename)`.
+NBTesting is a simple testing utility for Jupyter notebooks. How it works:
 
-The code in a cell that comes after `# NBSKIP` is ignored.
+1. [Add tests to your notebook](test/Test_notebook.ipynb) using `Base.Test`, or your
+favorite testing framework.
+2. Use `nbtest("Test_notebook.ipynb")` to run the tests. This will create and execute 
+[`Test_notebook.jl`](test/Test_notebook.jl), with the code from your notebook. 
+3. (Optional) Track this file with git
 
-```
-@test 5+5 == 10
-# NBSKIP
-@test 10*10 == This doesn't even have to be valid Julia code; it's not saved
-```
+`nbtest` will mostly run the notebook code as is (similar to
+[NBInclude.jl](https://github.com/stevengj/NBInclude.jl)), but it provides [a few ways to
+control which code gets executed when](test/Test_notebook.ipynb), and a `verbose=...`
+option for printing the headers (on by default - see `?nbtest` for details). The code is
+run inside a module called `NBTest_[Notebook name]`, to isolate it from the current
+environment, and to make it easier to inspect the state of variables if a test fails.
 
-
-
-
-TODO
-
-- export `is_testing()` which returns true iff we're running a test (use a dlet over the
-whole module - we want `include` to work)
-- @testset. Beware that this may create new scopes
-- Create a dummy module for Plots, that exports the same variables, but every function is a no-op
+To get the .jl file without executing it, use `nbtranslate(...)`

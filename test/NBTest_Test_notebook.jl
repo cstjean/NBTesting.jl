@@ -12,18 +12,25 @@ using Base.Test
 
 # Cell #2
 x = 10 - 9
-
-# Cell #3
 @test x==1
 
 println("### Basic Arithmetic"); flush(STDOUT)
-# Cell #4
+# Cell #3
 @test 5+5 == 10
 @test 6*10 == 60
 
-println("#### Interesting plot"); flush(STDOUT)
-# Cell #5
-plot([1,2,1])
 
+# Cell #4
+# Whatever more complicated computations happen in notebooks...
+srand(1)
+M1 = ones(5,5)
+M2 = rand(5,5);
+
+# Cell #5
+@test 30 < sum(M1 * M2) < 100
+
+println("#### Some plot"); flush(STDOUT)
+# Cell #6
+plot([1,2,1])
 
 end  # module 

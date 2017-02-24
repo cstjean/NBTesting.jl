@@ -17,6 +17,7 @@ Translates the given .ipynb file into a .jl file, for testing.
 
  - All code following #NBSKIP within a cell will be ignored
  - `outfile_name` defaults to the name of the .ipynb file, with a .jl extension.
+ - The code will be wrapped inside a module called `NBTest_[Notebook name]`.
  - All headers that start with N pound signs (#) will be turned into print statements,
 whenever `N <= verbose` (so the higher `verbose`, the more titles are printed)
 """
@@ -104,6 +105,7 @@ Translates the given .ipynb file into a .jl file for testing, then executes the 
 
  - All code following #NBSKIP within a cell will be ignored
  - `outfile_name` defaults to the name of the .ipynb file, with a .jl extension.
+ - NBTest wraps the notebook code inside a module called `NBTest_[Notebook name]`.
  - All headers that start with N pound signs (#) will be turned into print statements,
 whenever `N <= verbose` (so the higher `verbose`, the more titles are printed)
 """
