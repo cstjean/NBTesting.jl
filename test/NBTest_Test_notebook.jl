@@ -1,6 +1,6 @@
 module NBTest_Test_notebook
 
-println("# Top title"); flush(STDOUT)
+# ----------------------------------- println("# Top title"); flush(STDOUT)
 
 # Cell #1
 using NBTesting
@@ -15,7 +15,7 @@ using Base.Test
 x = 10 - 9
 @test x==1
 
-println("### Basic Arithmetic"); flush(STDOUT)
+# ----------------------------------- println("### Basic Arithmetic"); flush(STDOUT)
 
 # Cell #3
 @test 5+5 == 10
@@ -30,7 +30,7 @@ M2 = rand(5,5);
 # Cell #5
 @test 30 < sum(M1 * M2) < 100
 
-println("#### Some plot"); flush(STDOUT)
+# ----------------------------------- println("#### Some plot"); flush(STDOUT)
 
 # Cell #6
 plot([1,2,1])
