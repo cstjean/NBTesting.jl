@@ -123,7 +123,7 @@ noop(args...; kwargs...) = nothing
 
 """    @testing_noop fun1 fun2 ...
 
-This macro doesn't do anything under normal execution, when this macro is run by `nbtest`,
+This macro doesn't do anything under normal execution, but when it is run by `nbtest`,
 it turns the given function names into no-ops. It's primarily meant for disabling output
 functions like `plot` during testing. For example:
 
