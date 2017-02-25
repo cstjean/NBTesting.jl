@@ -6,7 +6,7 @@ module NBTesting
 
 using JSON
 
-export nbtest, nbtranslate, is_testing, @testing_noop
+export nbtest, is_testing, @testing_noop
 
 is_skip(line) = startswith(line, "#NBSKIP") || startswith(line, "# NBSKIP")
 
@@ -42,7 +42,9 @@ function nbtranslate(path::AbstractString;
     
     module_name = splitext(basename(outfile_name))[1]
     open(outfile_name, "w") do outfile
-        write(outfile, string("module ", module_name, "\n\n"))
+        write(outfile, string("module ", module_name, "\n"))
+        write(outfile, "using NBTesting\n")  # to avoid ambiguity warning for is_testing
+        write(outfile, "is_testing = true\n\n")
         counter = 0
         for cell in nb["cells"]
             if cell["cell_type"] == "code" && !isempty(cell["source"])
@@ -85,22 +87,9 @@ function nbtranslate(path::AbstractString;
     return outfile_name
 end
 
-const testing_flag = fill(false)
-function testing(f::Function, val=true)
-    old_val = testing_flag[]
-    testing_flag[] = val
-    try
-        f()
-    finally
-        testing_flag[] = old_val
-    end
-end
-testing(fname::AbstractString) = testing(()->include(fname))
 
-# Hey! I'm pretty sure that this could be an exported `global is_testing = false`, where
-# we would simply add `is_testing = true` at the top of the .jl file.
-""" `is_testing()` is true when called within `nbtest()`, and false otherwise. """
-is_testing() = testing_flag[]
+""" `is_testing` is true when called within `nbtest()`, and false otherwise. """
+is_testing = false
 
 
 """     nbtest(path; outfile_name=..., verbose=5)
@@ -117,7 +106,7 @@ function nbtest(path::AbstractString; verbose=5, kwargs...)
     fname = nbtranslate(path; verbose=verbose, kwargs...)
     if verbose > 0
         info("Testing $path"); flush(STDERR) end
-    return testing(fname)
+    return include(fname)
 end
 
 
@@ -129,15 +118,12 @@ This macro doesn't do anything under normal execution, but when it is run by `nb
 it turns the given function names into no-ops. It's primarily meant for disabling output
 functions like `plot` during testing. For example:
 
-    @testing_noop plot
-    #NBSKIP
     using Plots
-
-This will avoid loading Plots at all during testing.
+    @testing_noop plot plot! vline!
 """
 macro testing_noop(funs::Symbol...)
     esc(quote
-        if $NBTesting.is_testing()
+        if is_testing
             $([:(@eval $f = $NBTesting.noop) for f in funs]...)
         end
     end)
