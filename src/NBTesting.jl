@@ -97,6 +97,8 @@ function testing(f::Function, val=true)
 end
 testing(fname::AbstractString) = testing(()->include(fname))
 
+# Hey! I'm pretty sure that this could be an exported `global is_testing = false`, where
+# we would simply add `is_testing = true` at the top of the .jl file.
 """ `is_testing()` is true when called within `nbtest()`, and false otherwise. """
 is_testing() = testing_flag[]
 

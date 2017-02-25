@@ -7,8 +7,10 @@ println("# Top title"); flush(STDOUT)
 using NBTesting
 using Base.Test
 
+using PyPlot
+
 # This defines 
-#    plot(args...; kwargs...) = nothing
+#     plot(args...; kwargs...) = nothing
 # but only during testing.
 @testing_noop plot
 
@@ -36,6 +38,6 @@ M2 = rand(5,5);
 println("#### Some plot"); flush(STDOUT)
 
 # Cell #6
-plot([1,2,1])
+plot([1,2,1]);
 
 end  # module 
