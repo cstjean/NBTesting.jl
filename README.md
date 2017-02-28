@@ -6,9 +6,9 @@
 
 [![codecov.io](http://codecov.io/github/cstjean/NBTesting.jl/coverage.svg?branch=master)](http://codecov.io/github/cstjean/NBTesting.jl?branch=master)
 
-NBTesting is a simple testing utility for
-[IJulia](https://github.com/JuliaLang/IJulia.jl). It makes it convenient to write tests
-in your notebooks, alonside other plots and computations. How it works:
+NBTesting is a simple utility for
+[IJulia](https://github.com/JuliaLang/IJulia.jl) that makes it convenient to write tests
+in your notebooks, alongside other plots and computations. How it works:
 
 1. [Add tests to your notebook](test/Water_Analysis.ipynb) using `Base.Test`, or your
 favorite testing framework.
