@@ -17,9 +17,11 @@ tests. It will create and execute a file called
 [`NBTest_Water_Analysis.jl`](test/NBTest_Water_Analysis.jl).
 3. (Optional) Track this `.jl` file with git if all tests are successful.
 
-`nbtest` will mostly run the notebook code as is (similar to
-[NBInclude.jl](https://github.com/stevengj/NBInclude.jl)), but it provides [a few ways to
+`nbtest` will mostly run the notebook code as is, but it provides [a few ways to
 control which code gets executed when](test/Water_Analysis.ipynb), and a `verbose=...`
 option for printing the headers (on by default - see `?nbtest` for details). The code is
 wrapped inside a module called `NBTest_[Notebook name]`, to isolate it from the current
 environment, and to make it easier to inspect the state of variables if a test fails.
+
+NBTesting borrows code from [NBInclude.jl](https://github.com/stevengj/NBInclude.jl), by
+Steven G. Johnson.
