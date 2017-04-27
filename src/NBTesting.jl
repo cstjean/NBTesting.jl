@@ -10,6 +10,13 @@ export nbtest, is_testing, @testing_noop
 
 is_skip(line) = startswith(line, "#NBSKIP") || startswith(line, "# NBSKIP")
 
+const last_test_times = []
+clear_test_times!() = empty!(last_test_times)
+macro store_time(expr)
+    esc(quote
+        push!($NBTesting.last_test_times, ($(Expr(:quote, expr)), @elapsed($expr)))
+        end)
+end
 
 """     nbtranslate(path; outfile_name=..., verbose=5)
 
@@ -25,7 +32,7 @@ whenever `N <= verbose` (so the higher `verbose`, the more titles are printed)
 function nbtranslate(path::AbstractString;
                      outfile_name=joinpath(dirname(path),
                                            "NBTest_" * splitext(basename(path))[1]*".jl"),
-                     verbose=5)
+                     verbose=5, time_cells=false)
     _, ext = splitext(path)
     @assert ext == ".ipynb" "nbtranslate only accepts notebook files (.ipynb)"
 
@@ -45,6 +52,7 @@ function nbtranslate(path::AbstractString;
         write(outfile, string("module ", module_name, "\n"))
         write(outfile, "using NBTesting\n")  # to avoid ambiguity warning for is_testing
         write(outfile, "is_testing = true\n\n")
+        write(outfile, "NBTesting.clear_test_times!()\n\n")
         counter = 0
         for cell in nb["cells"]
             if cell["cell_type"] == "code" && !isempty(cell["source"])
@@ -56,18 +64,22 @@ function nbtranslate(path::AbstractString;
                 
                 lines = split(s, "\n")
                 if !is_skip(lines[1])
+                    if time_cells
+                        lines = vcat(["nbtest_temp_time = Base.time_ns()"],
+                                     lines,
+                                     ["push!(NBTesting.last_test_times, ($counter, ((Base.time_ns)() - nbtest_temp_time)/1.e9))"])
+                    end
                     write(outfile, string("# Cell #", cellnum, "\n"))
-                end
-                for line in lines
-                    if is_skip(line) break end
-                    write(outfile, line)
+                    for line in lines
+                        if is_skip(line) break end
+                        write(outfile, line)
+                        write(outfile, "\n")
+                    end
                     write(outfile, "\n")
                 end
-                write(outfile, "\n")
             elseif cell["cell_type"] == "markdown" && !isempty(cell["source"])
                 first_line = split(join(cell["source"]), "\n")[1]
-                # "#"[1] because of a silly ESS (Emacs) code-formatting bug.
-                n_pound = findfirst(x->x!="#"[1], first_line) - 1
+                n_pound = findfirst(x->x!='#', first_line) - 1
                 if 1 <= n_pound
                     if n_pound <= verbose
                         write(outfile, "# ----------------------------------- \n")
@@ -92,7 +104,7 @@ end
 is_testing = false
 
 
-"""     nbtest(path; outfile_name=..., verbose=5)
+"""     nbtest(path; outfile_name=..., verbose=5, time_cells=false)
 
 Translates the given .ipynb file into a .jl file for testing, then executes the file.
 
@@ -101,6 +113,8 @@ Translates the given .ipynb file into a .jl file for testing, then executes the 
  - NBTest wraps the notebook code inside a module called `NBTest_[Notebook name]`.
  - All headers that start with N pound signs (#) will be turned into print statements,
 whenever `N <= verbose` (so the higher `verbose`, the more titles are printed)
+ - If `time_cells=true`, each cell's running time is saved as `(Cell#, runtime)` in
+`NBTesting.last_test_times`. See the generated .jl file to match the `Cell#`.
 """
 function nbtest(path::AbstractString; verbose=5, kwargs...)
     fname = nbtranslate(path; verbose=verbose, kwargs...)

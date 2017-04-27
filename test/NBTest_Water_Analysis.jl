@@ -2,6 +2,8 @@ module NBTest_Water_Analysis
 using NBTesting
 is_testing = true
 
+NBTesting.clear_test_times!()
+
 # ----------------------------------- 
 println("# Top title"); flush(STDOUT)
 
