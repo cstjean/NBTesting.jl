@@ -18,6 +18,8 @@ macro store_time(expr)
         end)
 end
 
+const current_section = fill("No section")
+
 """     nbtranslate(path; outfile_name=..., verbose=5)
 
 Translates the given .ipynb file into a .jl file, for testing.
@@ -91,6 +93,7 @@ function nbtranslate(path::AbstractString;
                         write(outfile, first_line)
                         write(outfile, "\n")
                     end
+                    write(outfile, "NBTesting.current_section[] = \"$first_line\"\n")
                 end
             end
         end
