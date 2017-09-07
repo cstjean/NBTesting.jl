@@ -18,7 +18,7 @@ macro store_time(expr)
         end)
 end
 
-const current_section = fill("No section")
+const current_section = fill("")
 
 """     nbtranslate(path; outfile_name=..., verbose=5)
 
@@ -122,6 +122,7 @@ function nbtest(path::AbstractString; verbose=5, kwargs...)
     fname = nbtranslate(path; verbose=verbose, kwargs...)
     if verbose > 0
         info("Testing $path"); flush(STDERR) end
+    current_section[] = ""  # just to make sure it's not misleading
     return include(fname)
 end
 
