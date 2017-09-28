@@ -4,6 +4,8 @@ __precompile__()
 
 module NBTesting
 
+include("scrub_stderr.jl")
+
 using JSON
 
 export nbtest, is_testing, @testing_noop
@@ -96,7 +98,7 @@ function nbtranslate(path::AbstractString;
                 end
             end
         end
-        write(outfile, "end  # module \n")
+        write(outfile, "end  # module")
     end
     return outfile_name
 end
@@ -106,7 +108,7 @@ end
 is_testing = false
 
 
-"""     nbtest(path; outfile_name=..., verbose=5, time_cells=false)
+"""     nbtest(path; outfile_name=..., verbose=5, keep_module=false, time_cells=false)
 
 Translates the given .ipynb file into a .jl file for testing, then executes the file.
 
@@ -117,15 +119,50 @@ Translates the given .ipynb file into a .jl file for testing, then executes the 
 whenever `N <= verbose` (so the higher `verbose`, the more titles are printed)
  - If `time_cells=true`, each cell's running time is saved as `(Cell#, runtime)` in
 `NBTesting.last_test_times`. See the generated .jl file to match the `Cell#`.
+ - If `keep_module==true`, the second time that `nbtest(path)` is run for the same path,
+the code will be evaluated in the same `NBTest_...` module instead of creating a new
+module with the same name.
 """
-function nbtest(path::AbstractString; verbose=5, kwargs...)
+function nbtest(path::AbstractString; verbose=5, keep_module=false, kwargs...)
     fname = nbtranslate(path; verbose=verbose, kwargs...)
     if verbose > 0
         info("Testing $path"); flush(STDERR) end
     current_section[] = ""  # just to make sure it's not misleading
-    return include(fname)
+    if keep_module
+        return include_in_module(fname)
+    else
+        return include(fname)
+    end
 end
 
+function include_in_module(nb_file::String)
+    # I make a lot of effort to be able to run the code with `include`
+    tmp_nb_file = splitext(nb_file)[1] * "_tmp.jl"
+    local mod
+    try
+        mod_sym = open(tmp_nb_file, "w") do out
+            println(out, "# Comment line so that the line numbers of this temp file lines up with the real one")
+            lines = split(open(readstring, nb_file, "r"), '\n')
+            for line in lines[2:end-1]
+                write(out, line)
+                write(out, "\n")
+            end
+            module_, mod_name = split(lines[1], " ")
+            @assert module_ == "module"
+            Symbol(mod_name)
+        end
+        if isdefined(Main, mod_sym)
+            mod = eval(Main, mod_sym)
+        else
+            # module doesn't exist; just incude the file normally
+            return include(nb_file)
+        end
+        eval(mod, :($NBTesting.sinclude($tmp_nb_file)))
+        return mod
+    finally
+        rm(tmp_nb_file)
+    end
+end
 
 noop(args...; kwargs...) = nothing
 
